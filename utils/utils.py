@@ -20,7 +20,7 @@ class ImageFolderDataset(Dataset):
         image= Image.open(image_path)
 
         if self.transform:
-            image=self.transform(image).convert('RGB')
+            image=self.transform(image.convert('RGB'))
 
         return image
 

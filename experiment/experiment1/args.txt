@@ -1,6 +1,6 @@
-content_dir:/home/souvik/Desktop/NST/content_data
-style_dir:/home/souvik/Desktop/NST/style_data
-vgg:/home/souvik/Desktop/NST/vgg_normalised.pth
+content_dir:C:\Users\press\NST\content_data
+style_dir:C:\Users\press\NST\style_data
+vgg:C:\Users\press\NST\vgg_normalised.pth
 experiment:experiment1
 final_size:512
 content_size:256
@@ -10,9 +10,10 @@ batch_size:4
 lr:0.0001
 lr_decay:5e-05
 epochs:1
-content weight:1.0
-style weight:5
+content_weight:1.0
+style_weight:5
 save_interval:2
 resume:False
 decoder_path:None
 optimizer_path:None
+log_interval:1

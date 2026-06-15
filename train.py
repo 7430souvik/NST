@@ -11,12 +11,12 @@ from torchvision.utils import save_image
 def parse_arguments():
     parser= argparse.ArgumentParser()
 
-    parser.add_argument('--content_dir', type=str,default='/home/souvik/Desktop/NST/content_data',
+    parser.add_argument('--content_dir', type=str,default='C:\\Users\\press\\NST\\content_data',
                         help='Location of content dataset')
     
-    parser.add_argument('--style_dir', type=str,default='/home/souvik/Desktop/NST/style_data',
+    parser.add_argument('--style_dir', type=str,default='C:\\Users\\press\\NST\\style_data',
                         help='Location of style dataset')
-    parser.add_argument('--vgg',type=str, default='/home/souvik/Desktop/NST/vgg_normalised.pth',
+    parser.add_argument('--vgg',type=str, default='C:\\Users\\press\\NST\\vgg_normalised.pth',
                         help='Location of pretrained VGG')
     parser.add_argument('--experiment',type=str, default='experiment1',
                         help='Name of experiment')
@@ -42,9 +42,9 @@ def parse_arguments():
     parser.add_argument('--epochs', type=int, default=1,
                         help='Number of epochs')
     
-    parser.add_argument("--content weight", type=float, default=1.0,
+    parser.add_argument("--content_weight", type=float, default=1.0,
                         help='content weight')
-    parser.add_argument("--style weight", type=float, default=5,
+    parser.add_argument("--style_weight", type=float, default=5,
                         help='style weight')
     parser.add_argument('--save_interval', type=int, default=2,
                         help='Save interval')
@@ -57,6 +57,13 @@ def parse_arguments():
     
     parser.add_argument('--optimizer_path', type=str, default=None,
                         help='Path to optimizer checkpoint')
+    
+    parser.add_argument(
+    '--log_interval',
+    type=int,
+    default=1,
+    help='Logging interval'
+)
 
     return parser.parse_args() 
 
@@ -100,7 +107,7 @@ def main():
 
     optimizer= optim.Adam(decoder.parameters(), lr=args.lr)
 
-    schedular= optim.lr_scheduler.LambdaLR(
+    scheduler= optim.lr_scheduler.LambdaLR(
         optimizer,
         lr_lambda= lambda epoch: 1.0/(1.0 + args.lr_decay * epoch)
     )
@@ -113,15 +120,15 @@ def main():
 
     encoder.eval()
 
-    running_loss= None
-    running_closs=None
-    running_sloss=None
+    running_loss= 0.0
+    running_closs=0.0
+    running_sloss=0.0
     for epoch in range(args.epochs):
         progress_bar= tqdm(zip(content_dataloader,style_dataloader),
                            total=min(len(content_dataloader), len(style_dataloader)))
-        running_loss= None
-        running_closs=None
-        running_sloss=None
+        running_loss= 0.0
+        running_closs=0.0
+        running_sloss=0.0
         for content_batch, style_batch in progress_bar:
             content_batch = content_batch.to(device)
             style_batch= style_batch.to(device)
@@ -141,7 +148,7 @@ def main():
             for g_f, s_f in  zip(g_feats, s_feats):
                 g_mean,g_std= calc_mean_std(g_f)
                 s_mean,s_std= calc_mean_std(s_f)
-                loss += mse_loss(g_mean,s_mean) + mse_loss(g_std, s_std)
+                loss_s += mse_loss(g_mean,s_mean) + mse_loss(g_std, s_std)
 
             loss_s = loss_s * args.style_weight
             loss = loss_c + loss_s
@@ -151,7 +158,7 @@ def main():
             loss.backward()
             optimizer.step()
 
-            progress_bar.set_description(f'Loss:{loss.item():4f}, Content Loss: {loss_c.item():4f,}, style losss:{loss_s.item():4f}')
+            progress_bar.set_description(f'Loss:{loss.item():4f}, Content Loss: {loss_c.item():4f}, style losss:{loss_s.item():4f}')
 
             running_loss += loss.item()
             running_closs += loss_c.item()
